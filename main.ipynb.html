@@ -1,0 +1,213 @@
+<html>
+<head>
+<title>main.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bcbec4;}
+.s1 { color: #cf8e6d;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #2aacb8;}
+.ls0 { height: 1px; border-width: 0; color: #43454a; background-color:#43454a}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+main.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% 
+</span><span class="s1">import </span><span class="s0">pandas </span><span class="s1">as </span><span class="s0">pd</span>
+<span class="s1">import </span><span class="s0">numpy </span><span class="s1">as </span><span class="s0">np</span>
+<span class="s1">import </span><span class="s0">matplotlib</span><span class="s2">.</span><span class="s0">pyplot </span><span class="s1">as </span><span class="s0">plt</span>
+
+
+<span class="s0">CSV_PATH </span><span class="s2">= </span><span class="s3">&quot;train.csv&quot;</span>
+
+<span class="s0">store_id </span><span class="s2">= </span><span class="s4">1</span>
+<span class="s0">item_id </span><span class="s2">= </span><span class="s4">1</span>
+
+<span class="s0">L </span><span class="s2">= </span><span class="s4">7</span>
+
+<span class="s0">S </span><span class="s2">= </span><span class="s4">100.0</span>
+<span class="s0">z </span><span class="s2">= </span><span class="s4">1.65</span>
+<span class="s0">H </span><span class="s2">= </span><span class="s4">2.0</span>
+
+<span class="s0">MA_WINDOW </span><span class="s2">= </span><span class="s4">14</span>
+<span class="s0">ALPHA </span><span class="s2">= </span><span class="s4">0.2</span><hr class="ls0"><span class="s0">#%% 
+df </span><span class="s2">= </span><span class="s0">pd</span><span class="s2">.</span><span class="s0">read_csv</span><span class="s2">(</span><span class="s0">CSV_PATH</span><span class="s2">)</span>
+<span class="s0">df</span><span class="s2">[</span><span class="s3">&quot;date&quot;</span><span class="s2">] = </span><span class="s0">pd</span><span class="s2">.</span><span class="s0">to_datetime</span><span class="s2">(</span><span class="s0">df</span><span class="s2">[</span><span class="s3">&quot;date&quot;</span><span class="s2">])</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">=== VISÃO GERAL DA BASE ===&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Dimensão (linhas, colunas):&quot;</span><span class="s2">, </span><span class="s0">df</span><span class="s2">.</span><span class="s0">shape</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Colunas:&quot;</span><span class="s2">, </span><span class="s0">df</span><span class="s2">.</span><span class="s0">columns</span><span class="s2">.</span><span class="s0">tolist</span><span class="s2">())</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">NAs por coluna:</span><span class="s1">\n</span><span class="s3">&quot;</span><span class="s2">, </span><span class="s0">df</span><span class="s2">.</span><span class="s0">isna</span><span class="s2">().</span><span class="s0">sum</span><span class="s2">())</span>
+
+<span class="s0">dup </span><span class="s2">= </span><span class="s0">df</span><span class="s2">.</span><span class="s0">duplicated</span><span class="s2">(</span><span class="s0">subset</span><span class="s2">=[</span><span class="s3">&quot;date&quot;</span><span class="s2">, </span><span class="s3">&quot;store&quot;</span><span class="s2">, </span><span class="s3">&quot;item&quot;</span><span class="s2">]).</span><span class="s0">sum</span><span class="s2">()</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">Duplicatas (date-store-item):&quot;</span><span class="s2">, </span><span class="s0">dup</span><span class="s2">)</span>
+
+<span class="s0">daily_total </span><span class="s2">= </span><span class="s0">df</span><span class="s2">.</span><span class="s0">groupby</span><span class="s2">(</span><span class="s3">&quot;date&quot;</span><span class="s2">)[</span><span class="s3">&quot;sales&quot;</span><span class="s2">].</span><span class="s0">sum</span><span class="s2">().</span><span class="s0">sort_index</span><span class="s2">()</span>
+
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">figure</span><span class="s2">(</span><span class="s0">figsize</span><span class="s2">=(</span><span class="s4">10</span><span class="s2">,</span><span class="s4">4</span><span class="s2">))</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">plot</span><span class="s2">(</span><span class="s0">daily_total</span><span class="s2">.</span><span class="s0">index</span><span class="s2">, </span><span class="s0">daily_total</span><span class="s2">.</span><span class="s0">values</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">title</span><span class="s2">(</span><span class="s3">&quot;Figura 1 - Demanda total diária (rede inteira)&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">xlabel</span><span class="s2">(</span><span class="s3">&quot;Data&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">ylabel</span><span class="s2">(</span><span class="s3">&quot;Vendas (total)&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">tight_layout</span><span class="s2">()</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">show</span><span class="s2">()</span><hr class="ls0"><span class="s0">#%% 
+series </span><span class="s2">= (</span>
+    <span class="s0">df</span><span class="s2">[(</span><span class="s0">df</span><span class="s2">[</span><span class="s3">&quot;store&quot;</span><span class="s2">] == </span><span class="s0">store_id</span><span class="s2">) &amp; (</span><span class="s0">df</span><span class="s2">[</span><span class="s3">&quot;item&quot;</span><span class="s2">] == </span><span class="s0">item_id</span><span class="s2">)]</span>
+    <span class="s2">.</span><span class="s0">sort_values</span><span class="s2">(</span><span class="s3">&quot;date&quot;</span><span class="s2">)</span>
+    <span class="s2">.</span><span class="s0">set_index</span><span class="s2">(</span><span class="s3">&quot;date&quot;</span><span class="s2">)[</span><span class="s3">&quot;sales&quot;</span><span class="s2">]</span>
+<span class="s2">)</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">=== SÉRIE SELECIONADA (Loja {}, Item {}) ===&quot;</span><span class="s2">.</span><span class="s0">format</span><span class="s2">(</span><span class="s0">store_id</span><span class="s2">, </span><span class="s0">item_id</span><span class="s2">))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Período:&quot;</span><span class="s2">, </span><span class="s0">series</span><span class="s2">.</span><span class="s0">index</span><span class="s2">.</span><span class="s0">min</span><span class="s2">().</span><span class="s0">date</span><span class="s2">(), </span><span class="s3">&quot;-&gt;&quot;</span><span class="s2">, </span><span class="s0">series</span><span class="s2">.</span><span class="s0">index</span><span class="s2">.</span><span class="s0">max</span><span class="s2">().</span><span class="s0">date</span><span class="s2">())</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Nº de dias:&quot;</span><span class="s2">, </span><span class="s0">series</span><span class="s2">.</span><span class="s0">shape</span><span class="s2">[</span><span class="s4">0</span><span class="s2">])</span>
+
+<span class="s0">mu_d </span><span class="s2">= </span><span class="s0">float</span><span class="s2">(</span><span class="s0">series</span><span class="s2">.</span><span class="s0">mean</span><span class="s2">())</span>
+<span class="s0">sigma_d </span><span class="s2">= </span><span class="s0">float</span><span class="s2">(</span><span class="s0">series</span><span class="s2">.</span><span class="s0">std</span><span class="s2">(</span><span class="s0">ddof</span><span class="s2">=</span><span class="s4">1</span><span class="s2">))</span>
+<span class="s0">p05</span><span class="s2">, </span><span class="s0">p50</span><span class="s2">, </span><span class="s0">p95 </span><span class="s2">= </span><span class="s0">np</span><span class="s2">.</span><span class="s0">percentile</span><span class="s2">(</span><span class="s0">series</span><span class="s2">.</span><span class="s0">values</span><span class="s2">, [</span><span class="s4">5</span><span class="s2">, </span><span class="s4">50</span><span class="s2">, </span><span class="s4">95</span><span class="s2">])</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">Estatísticas da demanda diária:&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Média (mu_d):&quot;</span><span class="s2">, </span><span class="s0">round</span><span class="s2">(</span><span class="s0">mu_d</span><span class="s2">, </span><span class="s4">4</span><span class="s2">))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Desvio padrão (sigma_d):&quot;</span><span class="s2">, </span><span class="s0">round</span><span class="s2">(</span><span class="s0">sigma_d</span><span class="s2">, </span><span class="s4">4</span><span class="s2">))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;P05:&quot;</span><span class="s2">, </span><span class="s0">p05</span><span class="s2">, </span><span class="s3">&quot;| Mediana (P50):&quot;</span><span class="s2">, </span><span class="s0">p50</span><span class="s2">, </span><span class="s3">&quot;| P95:&quot;</span><span class="s2">, </span><span class="s0">p95</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Mín:&quot;</span><span class="s2">, </span><span class="s0">int</span><span class="s2">(</span><span class="s0">series</span><span class="s2">.</span><span class="s0">min</span><span class="s2">()), </span><span class="s3">&quot;| Máx:&quot;</span><span class="s2">, </span><span class="s0">int</span><span class="s2">(</span><span class="s0">series</span><span class="s2">.</span><span class="s0">max</span><span class="s2">()))</span>
+
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">figure</span><span class="s2">(</span><span class="s0">figsize</span><span class="s2">=(</span><span class="s4">10</span><span class="s2">,</span><span class="s4">4</span><span class="s2">))</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">plot</span><span class="s2">(</span><span class="s0">series</span><span class="s2">.</span><span class="s0">index</span><span class="s2">, </span><span class="s0">series</span><span class="s2">.</span><span class="s0">values</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">title</span><span class="s2">(</span><span class="s3">f&quot;Figura 2 - Demanda diária - Loja </span><span class="s1">{</span><span class="s0">store_id</span><span class="s1">} </span><span class="s3">| Item </span><span class="s1">{</span><span class="s0">item_id</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">xlabel</span><span class="s2">(</span><span class="s3">&quot;Data&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">ylabel</span><span class="s2">(</span><span class="s3">&quot;Vendas&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">tight_layout</span><span class="s2">()</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">show</span><span class="s2">()</span><hr class="ls0"><span class="s0">#%% 
+plt</span><span class="s2">.</span><span class="s0">figure</span><span class="s2">(</span><span class="s0">figsize</span><span class="s2">=(</span><span class="s4">7</span><span class="s2">,</span><span class="s4">4</span><span class="s2">))</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">hist</span><span class="s2">(</span><span class="s0">series</span><span class="s2">.</span><span class="s0">values</span><span class="s2">, </span><span class="s0">bins</span><span class="s2">=</span><span class="s4">30</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">title</span><span class="s2">(</span><span class="s3">f&quot;Figura 3 - Distribuição da demanda diária - Loja </span><span class="s1">{</span><span class="s0">store_id</span><span class="s1">} </span><span class="s3">| Item </span><span class="s1">{</span><span class="s0">item_id</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">xlabel</span><span class="s2">(</span><span class="s3">&quot;Vendas/dia&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">ylabel</span><span class="s2">(</span><span class="s3">&quot;Frequência&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">tight_layout</span><span class="s2">()</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">show</span><span class="s2">()</span><hr class="ls0"><span class="s0">#%% 
+test_days </span><span class="s2">= </span><span class="s4">60</span>
+<span class="s0">train </span><span class="s2">= </span><span class="s0">series</span><span class="s2">.</span><span class="s0">iloc</span><span class="s2">[:-</span><span class="s0">test_days</span><span class="s2">]</span>
+<span class="s0">test </span><span class="s2">= </span><span class="s0">series</span><span class="s2">.</span><span class="s0">iloc</span><span class="s2">[-</span><span class="s0">test_days</span><span class="s2">:]</span>
+
+
+<span class="s0">ma_forecast </span><span class="s2">= </span><span class="s0">train</span><span class="s2">.</span><span class="s0">rolling</span><span class="s2">(</span><span class="s0">MA_WINDOW</span><span class="s2">).</span><span class="s0">mean</span><span class="s2">()</span>
+
+<span class="s0">ma_pred </span><span class="s2">= []</span>
+<span class="s0">hist </span><span class="s2">= </span><span class="s0">train</span><span class="s2">.</span><span class="s0">copy</span><span class="s2">()</span>
+<span class="s1">for </span><span class="s0">t </span><span class="s1">in </span><span class="s0">range</span><span class="s2">(</span><span class="s0">len</span><span class="s2">(</span><span class="s0">test</span><span class="s2">)):</span>
+    <span class="s0">window </span><span class="s2">= </span><span class="s0">hist</span><span class="s2">.</span><span class="s0">iloc</span><span class="s2">[-</span><span class="s0">MA_WINDOW</span><span class="s2">:]</span>
+    <span class="s0">ma_pred</span><span class="s2">.</span><span class="s0">append</span><span class="s2">(</span><span class="s0">window</span><span class="s2">.</span><span class="s0">mean</span><span class="s2">())</span>
+    <span class="s0">hist </span><span class="s2">= </span><span class="s0">pd</span><span class="s2">.</span><span class="s0">concat</span><span class="s2">([</span><span class="s0">hist</span><span class="s2">, </span><span class="s0">pd</span><span class="s2">.</span><span class="s0">Series</span><span class="s2">([</span><span class="s0">test</span><span class="s2">.</span><span class="s0">iloc</span><span class="s2">[</span><span class="s0">t</span><span class="s2">]], </span><span class="s0">index</span><span class="s2">=[</span><span class="s0">test</span><span class="s2">.</span><span class="s0">index</span><span class="s2">[</span><span class="s0">t</span><span class="s2">]])])</span>
+<span class="s0">ma_pred </span><span class="s2">= </span><span class="s0">pd</span><span class="s2">.</span><span class="s0">Series</span><span class="s2">(</span><span class="s0">ma_pred</span><span class="s2">, </span><span class="s0">index</span><span class="s2">=</span><span class="s0">test</span><span class="s2">.</span><span class="s0">index</span><span class="s2">)</span>
+
+<span class="s0">level </span><span class="s2">= </span><span class="s0">train</span><span class="s2">.</span><span class="s0">iloc</span><span class="s2">[</span><span class="s4">0</span><span class="s2">]</span>
+<span class="s1">for </span><span class="s0">x </span><span class="s1">in </span><span class="s0">train</span><span class="s2">.</span><span class="s0">iloc</span><span class="s2">[</span><span class="s4">1</span><span class="s2">:]:</span>
+    <span class="s0">level </span><span class="s2">= </span><span class="s0">ALPHA </span><span class="s2">* </span><span class="s0">x </span><span class="s2">+ (</span><span class="s4">1 </span><span class="s2">- </span><span class="s0">ALPHA</span><span class="s2">) * </span><span class="s0">level</span>
+
+<span class="s0">ses_pred </span><span class="s2">= </span><span class="s0">pd</span><span class="s2">.</span><span class="s0">Series</span><span class="s2">([</span><span class="s0">level</span><span class="s2">]*</span><span class="s0">len</span><span class="s2">(</span><span class="s0">test</span><span class="s2">), </span><span class="s0">index</span><span class="s2">=</span><span class="s0">test</span><span class="s2">.</span><span class="s0">index</span><span class="s2">)</span>
+
+<span class="s1">def </span><span class="s0">mae</span><span class="s2">(</span><span class="s0">y_true</span><span class="s2">, </span><span class="s0">y_pred</span><span class="s2">):</span>
+    <span class="s1">return </span><span class="s0">float</span><span class="s2">(</span><span class="s0">np</span><span class="s2">.</span><span class="s0">mean</span><span class="s2">(</span><span class="s0">np</span><span class="s2">.</span><span class="s0">abs</span><span class="s2">(</span><span class="s0">y_true </span><span class="s2">- </span><span class="s0">y_pred</span><span class="s2">)))</span>
+
+<span class="s1">def </span><span class="s0">rmse</span><span class="s2">(</span><span class="s0">y_true</span><span class="s2">, </span><span class="s0">y_pred</span><span class="s2">):</span>
+    <span class="s1">return </span><span class="s0">float</span><span class="s2">(</span><span class="s0">np</span><span class="s2">.</span><span class="s0">sqrt</span><span class="s2">(</span><span class="s0">np</span><span class="s2">.</span><span class="s0">mean</span><span class="s2">((</span><span class="s0">y_true </span><span class="s2">- </span><span class="s0">y_pred</span><span class="s2">)**</span><span class="s4">2</span><span class="s2">)))</span><hr class="ls0"><span class="s0">#%% 
+print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">=== PREVISÃO (baseline) - Avaliação no TESTE (últimos {} dias) ===&quot;</span><span class="s2">.</span><span class="s0">format</span><span class="s2">(</span><span class="s0">test_days</span><span class="s2">))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;MA (janela={}): MAE={:.3f} | RMSE={:.3f}&quot;</span><span class="s2">.</span><span class="s0">format</span><span class="s2">(</span><span class="s0">MA_WINDOW</span><span class="s2">, </span><span class="s0">mae</span><span class="s2">(</span><span class="s0">test</span><span class="s2">, </span><span class="s0">ma_pred</span><span class="s2">), </span><span class="s0">rmse</span><span class="s2">(</span><span class="s0">test</span><span class="s2">, </span><span class="s0">ma_pred</span><span class="s2">)))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;SES (alpha={}): MAE={:.3f} | RMSE={:.3f}&quot;</span><span class="s2">.</span><span class="s0">format</span><span class="s2">(</span><span class="s0">ALPHA</span><span class="s2">, </span><span class="s0">mae</span><span class="s2">(</span><span class="s0">test</span><span class="s2">, </span><span class="s0">ses_pred</span><span class="s2">), </span><span class="s0">rmse</span><span class="s2">(</span><span class="s0">test</span><span class="s2">, </span><span class="s0">ses_pred</span><span class="s2">)))</span>
+
+
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">figure</span><span class="s2">(</span><span class="s0">figsize</span><span class="s2">=(</span><span class="s4">10</span><span class="s2">,</span><span class="s4">4</span><span class="s2">))</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">plot</span><span class="s2">(</span><span class="s0">test</span><span class="s2">.</span><span class="s0">index</span><span class="s2">, </span><span class="s0">test</span><span class="s2">.</span><span class="s0">values</span><span class="s2">, </span><span class="s0">label</span><span class="s2">=</span><span class="s3">&quot;Real (teste)&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">plot</span><span class="s2">(</span><span class="s0">ma_pred</span><span class="s2">.</span><span class="s0">index</span><span class="s2">, </span><span class="s0">ma_pred</span><span class="s2">.</span><span class="s0">values</span><span class="s2">, </span><span class="s0">label</span><span class="s2">=</span><span class="s3">f&quot;Previsão MA(</span><span class="s1">{</span><span class="s0">MA_WINDOW</span><span class="s1">}</span><span class="s3">)&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">plot</span><span class="s2">(</span><span class="s0">ses_pred</span><span class="s2">.</span><span class="s0">index</span><span class="s2">, </span><span class="s0">ses_pred</span><span class="s2">.</span><span class="s0">values</span><span class="s2">, </span><span class="s0">label</span><span class="s2">=</span><span class="s3">f&quot;Previsão SES(alpha=</span><span class="s1">{</span><span class="s0">ALPHA</span><span class="s1">}</span><span class="s3">)&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">title</span><span class="s2">(</span><span class="s3">f&quot;Figura 4 - Real vs Previsões (últimos </span><span class="s1">{</span><span class="s0">test_days</span><span class="s1">} </span><span class="s3">dias) - Loja </span><span class="s1">{</span><span class="s0">store_id</span><span class="s1">} </span><span class="s3">| Item </span><span class="s1">{</span><span class="s0">item_id</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">xlabel</span><span class="s2">(</span><span class="s3">&quot;Data&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">ylabel</span><span class="s2">(</span><span class="s3">&quot;Vendas&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">legend</span><span class="s2">()</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">tight_layout</span><span class="s2">()</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">show</span><span class="s2">()</span><hr class="ls0"><span class="s0">#%% 
+D </span><span class="s2">= </span><span class="s0">mu_d </span><span class="s2">* </span><span class="s4">365.0</span>
+
+<span class="s0">EOQ </span><span class="s2">= </span><span class="s0">np</span><span class="s2">.</span><span class="s0">sqrt</span><span class="s2">((</span><span class="s4">2.0 </span><span class="s2">* </span><span class="s0">D </span><span class="s2">* </span><span class="s0">S</span><span class="s2">) / </span><span class="s0">H</span><span class="s2">)</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">=== MODELO DETERMINÍSTICO (EOQ) ===&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Demanda anual estimada (D):&quot;</span><span class="s2">, </span><span class="s0">round</span><span class="s2">(</span><span class="s0">D</span><span class="s2">, </span><span class="s4">2</span><span class="s2">))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;S (custo por pedido):&quot;</span><span class="s2">, </span><span class="s0">S</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;H (custo anual de manutenção):&quot;</span><span class="s2">, </span><span class="s0">H</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;EOQ:&quot;</span><span class="s2">, </span><span class="s0">round</span><span class="s2">(</span><span class="s0">float</span><span class="s2">(</span><span class="s0">EOQ</span><span class="s2">), </span><span class="s4">2</span><span class="s2">))</span>
+
+
+<span class="s0">mu_LT </span><span class="s2">= </span><span class="s0">mu_d </span><span class="s2">* </span><span class="s0">L</span>
+<span class="s0">sigma_LT </span><span class="s2">= </span><span class="s0">sigma_d </span><span class="s2">* </span><span class="s0">np</span><span class="s2">.</span><span class="s0">sqrt</span><span class="s2">(</span><span class="s0">L</span><span class="s2">)</span>
+
+<span class="s0">SS </span><span class="s2">= </span><span class="s0">z </span><span class="s2">* </span><span class="s0">sigma_LT</span>
+<span class="s0">R </span><span class="s2">= </span><span class="s0">mu_LT </span><span class="s2">+ </span><span class="s0">SS</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">=== MODELO ESTOCÁSTICO (Q, R) ===&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Lead time (L):&quot;</span><span class="s2">, </span><span class="s0">L</span><span class="s2">, </span><span class="s3">&quot;dias&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Nível de serviço ~ z:&quot;</span><span class="s2">, </span><span class="s0">z</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Demanda média no LT (mu_LT):&quot;</span><span class="s2">, </span><span class="s0">round</span><span class="s2">(</span><span class="s0">mu_LT</span><span class="s2">, </span><span class="s4">2</span><span class="s2">))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Desvio padrão no LT (sigma_LT):&quot;</span><span class="s2">, </span><span class="s0">round</span><span class="s2">(</span><span class="s0">sigma_LT</span><span class="s2">, </span><span class="s4">2</span><span class="s2">))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Estoque de segurança (SS):&quot;</span><span class="s2">, </span><span class="s0">round</span><span class="s2">(</span><span class="s0">SS</span><span class="s2">, </span><span class="s4">2</span><span class="s2">))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Ponto de pedido (R):&quot;</span><span class="s2">, </span><span class="s0">round</span><span class="s2">(</span><span class="s0">R</span><span class="s2">, </span><span class="s4">2</span><span class="s2">))</span>
+
+
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">figure</span><span class="s2">(</span><span class="s0">figsize</span><span class="s2">=(</span><span class="s4">8</span><span class="s2">,</span><span class="s4">4</span><span class="s2">))</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">bar</span><span class="s2">([</span><span class="s3">&quot;mu_LT&quot;</span><span class="s2">, </span><span class="s3">&quot;R&quot;</span><span class="s2">], [</span><span class="s0">mu_LT</span><span class="s2">, </span><span class="s0">R</span><span class="s2">])</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">title</span><span class="s2">(</span><span class="s3">&quot;Figura 5 - Comparação: Demanda média no LT vs Ponto de Pedido (R)&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">ylabel</span><span class="s2">(</span><span class="s3">&quot;Unidades&quot;</span><span class="s2">)</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">tight_layout</span><span class="s2">()</span>
+<span class="s0">plt</span><span class="s2">.</span><span class="s0">show</span><span class="s2">()</span><hr class="ls0"><span class="s0">#%% 
+Q </span><span class="s2">= </span><span class="s0">max</span><span class="s2">(</span><span class="s4">1</span><span class="s2">, </span><span class="s0">int</span><span class="s2">(</span><span class="s0">round</span><span class="s2">(</span><span class="s0">EOQ</span><span class="s2">)))</span>
+
+<span class="s1">def </span><span class="s0">simulate_qr</span><span class="s2">(</span><span class="s0">demand_series</span><span class="s2">, </span><span class="s0">Q</span><span class="s2">, </span><span class="s0">R</span><span class="s2">, </span><span class="s0">L</span><span class="s2">):</span>
+    <span class="s0">on_hand </span><span class="s2">= </span><span class="s0">float</span><span class="s2">(</span><span class="s0">R</span><span class="s2">)</span>
+    <span class="s0">pipeline </span><span class="s2">= [</span><span class="s4">0.0</span><span class="s2">]*</span><span class="s0">L</span>
+    <span class="s0">stockouts </span><span class="s2">= </span><span class="s4">0</span>
+    <span class="s0">total_demand </span><span class="s2">= </span><span class="s4">0.0</span>
+    <span class="s0">filled </span><span class="s2">= </span><span class="s4">0.0</span>
+    <span class="s0">orders </span><span class="s2">= </span><span class="s4">0</span>
+
+    <span class="s1">for </span><span class="s0">d </span><span class="s1">in </span><span class="s0">demand_series</span><span class="s2">.</span><span class="s0">values</span><span class="s2">:</span>
+
+        <span class="s0">arriving </span><span class="s2">= </span><span class="s0">pipeline</span><span class="s2">.</span><span class="s0">pop</span><span class="s2">(</span><span class="s4">0</span><span class="s2">)</span>
+        <span class="s0">on_hand </span><span class="s2">+= </span><span class="s0">arriving</span>
+        <span class="s0">pipeline</span><span class="s2">.</span><span class="s0">append</span><span class="s2">(</span><span class="s4">0.0</span><span class="s2">)</span>
+
+        <span class="s0">total_demand </span><span class="s2">+= </span><span class="s0">d</span>
+        <span class="s1">if </span><span class="s0">on_hand </span><span class="s2">&gt;= </span><span class="s0">d</span><span class="s2">:</span>
+            <span class="s0">on_hand </span><span class="s2">-= </span><span class="s0">d</span>
+            <span class="s0">filled </span><span class="s2">+= </span><span class="s0">d</span>
+        <span class="s1">else</span><span class="s2">:</span>
+            <span class="s0">filled </span><span class="s2">+= </span><span class="s0">on_hand</span>
+            <span class="s0">on_hand </span><span class="s2">= </span><span class="s4">0.0</span>
+            <span class="s0">stockouts </span><span class="s2">+= </span><span class="s4">1</span>
+
+        <span class="s0">inv_pos </span><span class="s2">= </span><span class="s0">on_hand </span><span class="s2">+ </span><span class="s0">sum</span><span class="s2">(</span><span class="s0">pipeline</span><span class="s2">)</span>
+        <span class="s1">if </span><span class="s0">inv_pos </span><span class="s2">&lt;= </span><span class="s0">R</span><span class="s2">:</span>
+            <span class="s0">pipeline</span><span class="s2">[-</span><span class="s4">1</span><span class="s2">] += </span><span class="s0">Q</span>
+            <span class="s0">orders </span><span class="s2">+= </span><span class="s4">1</span>
+
+    <span class="s0">service_level_fillrate </span><span class="s2">= </span><span class="s0">filled </span><span class="s2">/ </span><span class="s0">total_demand </span><span class="s1">if </span><span class="s0">total_demand </span><span class="s2">&gt; </span><span class="s4">0 </span><span class="s1">else </span><span class="s4">0.0</span>
+    <span class="s0">stockout_rate </span><span class="s2">= </span><span class="s0">stockouts </span><span class="s2">/ </span><span class="s0">len</span><span class="s2">(</span><span class="s0">demand_series</span><span class="s2">)</span>
+
+    <span class="s1">return </span><span class="s2">{</span>
+        <span class="s3">&quot;orders&quot;</span><span class="s2">: </span><span class="s0">orders</span><span class="s2">,</span>
+        <span class="s3">&quot;fill_rate&quot;</span><span class="s2">: </span><span class="s0">service_level_fillrate</span><span class="s2">,</span>
+        <span class="s3">&quot;stockout_rate_days&quot;</span><span class="s2">: </span><span class="s0">stockout_rate</span>
+    <span class="s2">}</span>
+
+<span class="s0">sim_results </span><span class="s2">= </span><span class="s0">simulate_qr</span><span class="s2">(</span><span class="s0">test</span><span class="s2">, </span><span class="s0">Q</span><span class="s2">=</span><span class="s0">Q</span><span class="s2">, </span><span class="s0">R</span><span class="s2">=</span><span class="s0">R</span><span class="s2">, </span><span class="s0">L</span><span class="s2">=</span><span class="s0">L</span><span class="s2">)</span>
+
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;</span><span class="s1">\n</span><span class="s3">=== SIMULAÇÃO (TÓPICO V - recomendado) ===&quot;</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Política simulada: Q =&quot;</span><span class="s2">, </span><span class="s0">Q</span><span class="s2">, </span><span class="s3">&quot;| R =&quot;</span><span class="s2">, </span><span class="s0">round</span><span class="s2">(</span><span class="s0">R</span><span class="s2">, </span><span class="s4">2</span><span class="s2">), </span><span class="s3">&quot;| L =&quot;</span><span class="s2">, </span><span class="s0">L</span><span class="s2">)</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Nº de pedidos no período:&quot;</span><span class="s2">, </span><span class="s0">sim_results</span><span class="s2">[</span><span class="s3">&quot;orders&quot;</span><span class="s2">])</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Fill rate (aprox.): {:.2%}&quot;</span><span class="s2">.</span><span class="s0">format</span><span class="s2">(</span><span class="s0">sim_results</span><span class="s2">[</span><span class="s3">&quot;fill_rate&quot;</span><span class="s2">]))</span>
+<span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Taxa de dias com ruptura (aprox.): {:.2%}&quot;</span><span class="s2">.</span><span class="s0">format</span><span class="s2">(</span><span class="s0">sim_results</span><span class="s2">[</span><span class="s3">&quot;stockout_rate_days&quot;</span><span class="s2">]))</span></pre>
+</body>
+</html>
